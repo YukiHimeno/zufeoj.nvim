@@ -160,7 +160,7 @@ local function pull_and_open(ref)
       source = result.dir .. '/main.cpp'
       local fd = io.open(source, 'w')
       if fd then
-        fd:write('#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    return 0;\n}\n')
+        fd:write('#include <iostream>\nusing namespace std;\n\nint main() {\n    return 0;\n}\n')
         fd:close()
       end
     end
@@ -338,11 +338,20 @@ function M.test()
 
   local language = runner.language_of(file, vim.bo.filetype) or config.get().default_language
 
+  -- The runner compiles the file from disk, so unsaved edits must land first.
+  local saved = workspace.save_modified(ws.dir, file)
+
   local log = {
     string.format('本地运行 %s · %s', vim.fn.fnamemodify(file, ':t'), ws.meta.title),
     string.format('样例 %d 组%s', #samples, #testdata > 0 and string.format(' · 评测数据 %d 组', #testdata) or ''),
-    '',
   }
+  if #saved > 0 then
+    local names = vim.tbl_map(function(path)
+      return vim.fn.fnamemodify(path, ':t')
+    end, saved)
+    log[#log + 1] = '已保存 ' .. table.concat(names, ' ')
+  end
+  log[#log + 1] = ''
   local win = float.open({ title = 'zufeoj 本地测试', lines = log, width = 88, height = 18 })
 
   runner.run({

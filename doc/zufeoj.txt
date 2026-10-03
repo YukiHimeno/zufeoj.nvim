@@ -78,6 +78,9 @@ r                刷新
 鼠标左键         点击执行
 
 选择器（题库/比赛）里回车 = 拉取（如需）并打开工作区，<C-o> 只看题面。
+
+:ZufeojTest 与 :ZufeojSubmit 执行前会先保存工作区里未保存的修改（读取的是
+磁盘上的文件）。保存就地完成，不改窗口布局、标签页或焦点。
 列表界面由 picker 选项控制：'auto' 检测到 snacks/telescope/fzf-lua 时交给
 vim.ui.select，否则用内置选择器。
 

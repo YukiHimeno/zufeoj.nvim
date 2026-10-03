@@ -171,6 +171,9 @@ function M.run(file_path, retried)
   local title = ws and ws.meta.title or vim.fn.fnamemodify(file, ':t')
   local short = vim.fn.fnamemodify(file, ':t')
 
+  -- Persist pending edits before submitting; the write is in-place.
+  local saved = workspace.save_modified(ws and ws.dir or nil, file)
+
   local win = float.open({
     title = '提交 · ' .. short,
     width = 84,
@@ -179,7 +182,11 @@ function M.run(file_path, retried)
     follow = true,
   })
 
-  local log = { '提交 ' .. short .. ' → ' .. title, '' }
+  local log = { '提交 ' .. short .. ' → ' .. title }
+  if #saved > 0 then
+    log[#log + 1] = '已保存到磁盘'
+  end
+  log[#log + 1] = ''
 
   M.submit({ file_path = file }, function(poll)
     local line = string.format('  #%d  %s', poll.solution_id or 0, api.verdict_name(poll.result))

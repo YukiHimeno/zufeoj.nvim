@@ -148,6 +148,41 @@ function M.read_testdata(ws_dir)
   return pairs_found
 end
 
+--- Save modified buffers that belong to the workspace (plus an explicit extra
+--- path) before an action reads files from disk. Runs in place: the window
+--- layout, tab pages and focus are left exactly as they were, and autocmds are
+--- skipped so a save hook can never rearrange the editor mid-action.
+function M.save_modified(ws_dir, extra_path)
+  local saved = {}
+  -- fnamemodify(':p') already appends a trailing slash for existing directories
+  local ws_root = ws_dir and (vim.fn.fnamemodify(ws_dir, ':p'):gsub('/+$', '')) or nil
+  local ws_prefix = ws_root and (ws_root .. '/') or nil
+  local target = extra_path and vim.fn.fnamemodify(extra_path, ':p') or nil
+
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if
+      vim.api.nvim_buf_is_loaded(bufnr)
+      and vim.bo[bufnr].modified
+      and vim.bo[bufnr].buftype == ''
+      and not vim.bo[bufnr].readonly
+    then
+      local name = vim.api.nvim_buf_get_name(bufnr)
+      if name ~= '' then
+        local path = vim.fn.fnamemodify(name, ':p')
+        local relevant = (target ~= nil and path == target)
+          or (ws_prefix ~= nil and vim.startswith(path, ws_prefix))
+        if relevant then
+          vim.api.nvim_buf_call(bufnr, function()
+            vim.cmd('silent noautocmd update')
+          end)
+          saved[#saved + 1] = path
+        end
+      end
+    end
+  end
+  return saved
+end
+
 --- Pick the source file to build/submit: main.* first, else the only candidate.
 function M.find_source(dir)
   local extensions = { 'cpp', 'cc', 'cxx', 'c', 'java', 'py', 'php', 'go', 'rs' }
