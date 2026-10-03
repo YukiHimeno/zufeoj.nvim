@@ -61,7 +61,7 @@ git clone https://github.com/YukiHimeno/zufeoj.nvim \
 vim.opt.rtp:prepend('~/src/zufeoj.nvim')
 ```
 
-需要调整默认值时再调用一次：
+调整默认值可以调用 `setup()`，也可以直接用 `:ZufeojSetup` 在面板里改（保存到 `config.json`，重启仍生效，且优先于 `setup()`；留空恢复默认）。
 
 ```lua
 require('zufeoj').setup({
@@ -80,6 +80,7 @@ require('zufeoj').setup({
 | 命令 | 说明 |
 | --- | --- |
 | `:Zufeoj` | 浮动操作面板（推荐入口） |
+| `:ZufeojSetup` | 交互式设置：工作区目录、列表界面、超时等（保存到 `config.json`） |
 | `:ZufeojLogin` / `:ZufeojLogout` | 登录 / 退出（对话式输入账号密码） |
 | `:ZufeojStatus` | 账号、工作区、测试数据、源码一览 |
 | `:ZufeojProblems` | 题库选择器（`<CR>` 开题面，`<C-s>` 拉到工作区） |

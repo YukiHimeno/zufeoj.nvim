@@ -10,7 +10,7 @@ end
 
 local commands = {
   Zufeoj = { desc = 'zufeoj: 打开操作面板', fn = function() zufe().dashboard() end },
-  ZufeojSetup = { desc = 'zufeoj: 应用配置', fn = function() zufe().setup() end },
+  ZufeojSetup = { desc = 'zufeoj: 交互式设置（工作区目录等）', fn = function() zufe().settings() end },
   ZufeojLogin = { desc = 'zufeoj: 登录', fn = function() zufe().login() end },
   ZufeojLogout = { desc = 'zufeoj: 退出登录', fn = function() zufe().logout() end },
   ZufeojStatus = { desc = 'zufeoj: 账号与工作区状态', fn = function() zufe().status() end },

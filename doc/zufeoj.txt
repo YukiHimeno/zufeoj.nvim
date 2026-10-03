@@ -27,6 +27,7 @@ buffer，本地跑样例与评测数据，提交并实时看判题结果。
 命令                                                      *zufeoj-commands*
 
 :Zufeoj                 浮动操作面板（推荐入口）          *:Zufeoj*
+:ZufeojSetup            交互式设置（工作区目录 / 列表界面等） *:ZufeojSetup*
 :ZufeojLogin            登录（输入用户名与密码）              *:ZufeojLogin*
 :ZufeojLogout           退出登录                              *:ZufeojLogout*
 :ZufeojStatus           账号 / 工作区 / 测试数据状态          *:ZufeojStatus*
@@ -41,6 +42,10 @@ buffer，本地跑样例与评测数据，提交并实时看判题结果。
 :ZufeojHealth           环境自检                              *:ZufeojHealth*
 
 题号格式：`1001`、`6471 A`、`6471-A`、`6471:0`。
+
+:ZufeojSetup 打开设置面板，可修改工作区目录、会话文件、列表界面、默认语言、
+轮询间隔、判题超时。改动写入 stdpath('data')/zufeoj/config.json，立即生效且重
+启后保留；优先级为 默认值 < setup() 参数 < 此处保存的值。输入留空恢复该项默认。
 
 ==============================================================================
 选择器键位                                              *zufeoj-picker-keys*

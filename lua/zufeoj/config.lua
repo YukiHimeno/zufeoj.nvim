@@ -2,7 +2,6 @@ local M = {}
 
 M.defaults = {
   -- Where downloaded problems, samples and judge test data live.
-  -- {problem} and {contest} expand to the problem id / contest id.
   workdir = vim.fn.stdpath('data') .. '/zufeoj/workspace',
   -- curl cookie jar holding the ZUFEOJ session (Netscape format).
   cookie_file = vim.fn.stdpath('data') .. '/zufeoj/cookies.txt',
@@ -20,16 +19,84 @@ M.defaults = {
 
 M.options = {}
 
-function M.setup(opts)
-  M.options = vim.tbl_deep_extend('force', vim.deepcopy(M.defaults), opts or {})
-  vim.fn.mkdir(vim.fn.fnamemodify(M.options.cookie_file, ':h'), 'p')
-  vim.fn.mkdir(M.options.workdir, 'p')
+-- Values saved through :ZufeojSetup. Precedence, low to high:
+-- defaults < setup() opts < these persisted values.
+local persisted = nil
+local setup_opts = {}
+
+--- Where :ZufeojSetup writes its choices.
+function M.config_path()
+  return vim.fn.stdpath('data') .. '/zufeoj/config.json'
+end
+
+local function read_persisted()
+  local path = M.config_path()
+  if vim.fn.filereadable(path) == 0 then
+    return {}
+  end
+  local ok, data = pcall(function()
+    local fd = io.open(path, 'r')
+    local content = fd:read('*a')
+    fd:close()
+    return vim.json.decode(content)
+  end)
+  if not ok or type(data) ~= 'table' then
+    return {}
+  end
+  return data
+end
+
+--- Persisted (user-edited) options.
+function M.saved()
+  if persisted == nil then
+    persisted = read_persisted()
+  end
+  return persisted
+end
+
+--- Set one option and persist it. A nil (or default) value removes the key.
+function M.set_saved(key, value)
+  local saved = M.saved()
+  if value == nil or value == M.defaults[key] then
+    saved[key] = nil
+  else
+    saved[key] = value
+  end
+
+  local path = M.config_path()
+  vim.fn.mkdir(vim.fn.fnamemodify(path, ':h'), 'p')
+  local fd = io.open(path, 'w')
+  if not fd then
+    return false, '无法写入 ' .. path
+  end
+  local payload = next(saved) == nil and '{}' or vim.json.encode(saved)
+  fd:write(payload)
+  fd:close()
+
+  M.rebuild()
+  return true
+end
+
+local function ensure_dirs(options)
+  vim.fn.mkdir(vim.fn.fnamemodify(options.cookie_file, ':h'), 'p')
+  vim.fn.mkdir(options.workdir, 'p')
+end
+
+--- Recompute the effective options: defaults, then setup() opts, then saved.
+function M.rebuild()
+  M.options = vim.tbl_deep_extend('force', vim.deepcopy(M.defaults), setup_opts, M.saved())
+  ensure_dirs(M.options)
   return M.options
+end
+
+function M.setup(opts)
+  setup_opts = opts or {}
+  return M.rebuild()
 end
 
 function M.get()
   if vim.tbl_isempty(M.options) then
-    M.setup()
+    M.rebuild()
   end
   return M.options
 end

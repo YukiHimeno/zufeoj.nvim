@@ -531,6 +531,11 @@ function M.watch(sid_text)
   end)
 end
 
+--- :ZufeojSetup — 交互式修改并持久化设置。
+function M.settings()
+  require('zufeoj.ui.settings').open()
+end
+
 --- The floating hub behind `:Zufeoj`.
 function M.dashboard()
   require('zufeoj.ui.dashboard').open({
@@ -544,6 +549,7 @@ function M.dashboard()
     data = M.data,
     status = M.status,
     health = M.health,
+    settings = M.settings,
     open_workspace = M.open_workspace,
   })
 end
