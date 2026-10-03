@@ -1,0 +1,93 @@
+*zufeoj.txt*  ZUFEOJ 在 Neovim 里                  *zufeoj* *zufeoj.nvim*
+
+zufeoj.nvim 把 ZUFEOJ（https://acm.ocrosoft.com）搬进编辑器：浏览题目、题面进
+buffer，本地跑样例与评测数据，提交并实时看判题结果。
+
+入口是浮动操作面板 `:Zufeoj`：一个命令进去，之后 j/k 移动、回车执行。面板不
+注册默认键位，想用快捷键自己绑：
+
+>lua
+    vim.keymap.set('n', '<leader>z', '<cmd>Zufeoj<cr>', { desc = 'zufeoj' })
+<
+
+==============================================================================
+配置                                                        *zufeoj.setup()*
+
+>lua
+    require('zufeoj').setup({
+      workdir = vim.fn.stdpath('data') .. '/zufeoj/workspace',
+      cookie_file = vim.fn.stdpath('data') .. '/zufeoj/cookies.txt',
+      default_language = 'C++',
+      poll_interval = 2000,     -- 判题轮询间隔（毫秒）
+      judge_timeout = 180,      -- 等待判题超时（秒）
+      picker = 'auto',          -- 'auto' | 'builtin' | 'ui'
+    })
+<
+==============================================================================
+命令                                                      *zufeoj-commands*
+
+:Zufeoj                 浮动操作面板（推荐入口）          *:Zufeoj*
+:ZufeojLogin            登录（输入用户名与密码）              *:ZufeojLogin*
+:ZufeojLogout           退出登录                              *:ZufeojLogout*
+:ZufeojStatus           账号 / 工作区 / 测试数据状态          *:ZufeojStatus*
+:ZufeojProblems         题库选择器                            *:ZufeojProblems*
+:ZufeojContests         比赛列表                              *:ZufeojContests*
+:ZufeojOpen [题号]      打开题面                              *:ZufeojOpen*
+:ZufeojPull [题号]      拉取题目到工作区                      *:ZufeojPull*
+:ZufeojTest             本地运行样例 + 评测数据               *:ZufeojTest*
+:ZufeojData             下载评测数据（管理员/教师）           *:ZufeojData*
+:ZufeojSubmit [文件]    提交当前文件                          *:ZufeojSubmit*
+:ZufeojWatch [sid]      监视判题                              *:ZufeojWatch*
+:ZufeojHealth           环境自检                              *:ZufeojHealth*
+
+题号格式：`1001`、`6471 A`、`6471-A`、`6471:0`。
+
+==============================================================================
+选择器键位                                              *zufeoj-picker-keys*
+
+输入                子序列模糊过滤（支持中文）
+<C-n> / <C-p>       向下/向上选择
+<CR>                打开（题面 buffer）
+<C-s>               拉取到工作区
+<C-f> / <C-b>       下一页 / 上一页
+<Esc> / q           关闭
+
+==============================================================================
+工作区                                                    *zufeoj-workspace*
+
+    <workdir>/
+    ├── 1001-题名/                 题库题
+    │   ├── statement.md           题面（markdown）
+    │   ├── meta.json              题目与提交信息
+    │   ├── main.cpp               源码（自动建立骨架）
+    │   ├── samples/               样例（:ZufeojPull 自动写入）
+    │   └── testdata/              评测数据（:ZufeojData，可选）
+    └── contest-<cid>/<A-题名>/     比赛题
+
+在题目目录里打开文件后，:ZufeojTest 与 :ZufeojSubmit 自动定位工作区。
+
+==============================================================================
+面板                                                    *zufeoj-dashboard*
+
+:Zufeoj 打开浮动面板，分四段：操作、当前工作区、最近题目、账号状态。
+
+j / k / 方向键   移动（只落在可执行行上）
+回车             执行选中项
+q / Esc          关闭
+r                刷新
+鼠标左键         点击执行
+
+选择器（题库/比赛）里回车 = 拉取（如需）并打开工作区，<C-o> 只看题面。
+列表界面由 picker 选项控制：'auto' 检测到 snacks/telescope/fzf-lua 时交给
+vim.ui.select，否则用内置选择器。
+
+==============================================================================
+实现说明                                                *zufeoj-notes*
+
+- 与站点网页前端共用同一套 REST API；会话存放在 curl cookie jar 文件里。
+- 判题码：0-3 排队/评测中，4 AC，5 PE，6 WA，7 TLE，8 MLE，9 OLE，10 RE，
+  11 CE。非 AC 提交会拉取评测机的判题输出（WA 的期望/实际对比、CE 编译错误）。
+- 评测数据导出接口（/api/admin/problems/{id}/export）仅管理员或题目所属教师
+  可用；学生账号可用样例进行本地测试。
+
+vim:tw=78:ts=8:ft=help:norl:
