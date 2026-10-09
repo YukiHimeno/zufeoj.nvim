@@ -7,7 +7,8 @@ local M = {}
 
 -- Pickers we can hand `vim.ui.select` to when the user has one loaded. Nothing
 -- is required: without any of these the bundled picker below takes over.
-local PROVIDERS = { 'snacks', 'telescope', 'fzf-lua' }
+local PROVIDERS = { 'snacks', 'telescope', 'fzf-lua', 'dressing' }
+local fell_back = false
 
 local function provider_loaded()
   for _, name in ipairs(PROVIDERS) do
@@ -19,8 +20,21 @@ local function provider_loaded()
 end
 
 --- Effective picker backend: 'builtin' or 'ui'.
+--- 'ui' without any provider would land on the core vim.ui.select, which prints
+--- a numbered list into the message area — useless for 200 problems, so it falls
+--- back to the bundled picker (with a one-time hint).
 function M.mode()
   local mode = config.get().picker or 'auto'
+  if mode == 'ui' and not provider_loaded() then
+    if not fell_back then
+      fell_back = true
+      vim.notify(
+        'zufeoj: 没检测到 snacks/telescope/fzf-lua（或 dressing），列表改用内置选择器',
+        vim.log.levels.INFO
+      )
+    end
+    return 'builtin'
+  end
   if mode ~= 'builtin' and mode ~= 'ui' then
     mode = provider_loaded() and 'ui' or 'builtin'
   end

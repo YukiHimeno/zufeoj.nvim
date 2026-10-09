@@ -227,7 +227,8 @@ function M.contest_list(page, cb)
 end
 
 function M.contest(id, cb)
-  M.request({ path = '/api/contests/' .. id }, cb)
+  -- renamed from /api/contests/{id} in the 2026-10 site update
+  M.request({ path = '/api/contests/' .. id .. '/detail-with-problems' }, cb)
 end
 
 function M.contest_problem(cid, num, cb)
